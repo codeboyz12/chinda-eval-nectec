@@ -15,6 +15,7 @@
 ## 📋 Table of Contents
 - [🎯 Key Features](#-key-features)
 - [📊 Thai Benchmarks](#-thai-benchmarks)
+- [🧳 Travel-QA Benchmark](#-travel-qa-benchmark)
 - [🚀 Quick Start](#-quick-start)
 - [⚙️ Installation](#️-installation)
 - [📈 Evaluation Results](#-evaluation-results)
@@ -46,8 +47,107 @@ The framework includes the following Thai language benchmarks:
 | **LiveCodeBench-TH** | Thai code generation with test execution | Programming |
 | **LiveCodeBench** | English code generation with test execution | Programming |
 | **OpenThaiEval** | Thai national exam questions (O-NET, TGAT, etc.) | General Knowledge |
+| **Travel-QA** | Thai/English MCQ on Thailand travel (destinations, culture, logistics) | Travel / Domain |
 
 Each benchmark has been carefully translated and validated to ensure cultural and linguistic appropriateness for Thai language evaluation.
+
+## 🧳 Travel-QA Benchmark
+
+Travel-QA is a Thai/English multiple-choice benchmark for evaluating LLMs on
+Thailand-specific travel knowledge: destinations, accommodations, attractions,
+local culture, food, and travel logistics. It was originally built to evaluate
+the OpenThaiGPT **ThaiLLM travel** fine-tunes and is now a first-class
+benchmark inside `chinda-eval`.
+
+### What ships with the repo
+
+| File                                                   | Purpose                                      |
+| ------------------------------------------------------ | -------------------------------------------- |
+| `evalscope/benchmarks/travel_qa/travel_qa_adapter.py`  | Registers the `travel_qa` benchmark          |
+| `custom_eval/text/mcq/travel_qa_example_dev.jsonl`     | 3 example few-shot items (Thai + English)    |
+| `custom_eval/text/mcq/travel_qa_example_val.jsonl`     | 10 example evaluation items (Thai + English) |
+
+> ⚠️ The **full test set is owned externally and is _not_ committed**. The
+> `.gitignore` blocks the canonical filenames so they cannot be staged by
+> accident (`travel_qa_dev.jsonl`, `travel_qa_val.jsonl`,
+> `travel_qa_v*_*.jsonl`, `travel_qa_ver*.xlsx`). Drop the real files into
+> `custom_eval/text/mcq/` locally to run the full eval.
+
+### Data format
+
+Each line is one JSON record:
+
+```json
+{"id": "ex_val_1", "question": "...", "A": "...", "B": "...", "C": "...", "D": "...", "answer": "B"}
+```
+
+- `id` — string, unique per record.
+- `question` — the prompt shown to the model.
+- `A`, `B`, `C`, `D`, … — choice text. Up to 10 choices (`A`–`J`) supported.
+- `answer` — single uppercase letter matching one of the choice keys.
+
+Files are resolved as `{subset}_{split}.jsonl` under `custom_eval/text/mcq/`,
+so a subset named `travel_qa_v2` requires both `travel_qa_v2_dev.jsonl` and
+`travel_qa_v2_val.jsonl`.
+
+### Quick smoke test (uses the bundled example subset)
+
+```bash
+evalscope eval \
+    --model "$MODEL_NAME" \
+    --api-url http://localhost:8801/v1/chat/completions \
+    --api-key EMPTY \
+    --eval-type openai_api \
+    --datasets travel_qa \
+    --work-dir outputs/$MODEL_NAME/travel_qa_example \
+    --eval-batch-size 8 \
+    --generation-config '{"do_sample": false, "temperature": 0.0, "max_new_tokens": 1024}'
+```
+
+### Full evaluation (with the private test set)
+
+1. Drop the real test files into `custom_eval/text/mcq/`, naming them
+   `{subset}_dev.jsonl` and `{subset}_val.jsonl` — e.g.
+   `travel_qa_v2_dev.jsonl` / `travel_qa_v2_val.jsonl`. The `.gitignore`
+   already protects these names.
+2. Point the benchmark at the private subset:
+
+   ```bash
+   evalscope eval \
+       --model "$MODEL_NAME" \
+       --api-url http://localhost:8801/v1/chat/completions \
+       --api-key EMPTY \
+       --eval-type openai_api \
+       --datasets travel_qa \
+       --dataset-args '{"travel_qa": {"subset_list": ["travel_qa_v2"]}}' \
+       --work-dir outputs/$MODEL_NAME/travel_qa_v2 \
+       --eval-batch-size 8 \
+       --limit 200 \
+       --generation-config '{"do_sample": false, "temperature": 0.0, "max_new_tokens": 1024}'
+   ```
+
+   To use a directory outside the repo, override `local_path`:
+
+   ```bash
+   --dataset-args '{"travel_qa": {"local_path": "/abs/path/to/mcq", "subset_list": ["travel_qa_v2"]}}'
+   ```
+
+### Backwards compatible: invoking via `general_mcq`
+
+The original workflow in `thaillm-travel-lora.sh` calls `general_mcq` with an
+inline `prompt_template`. That still works — the new `travel_qa` benchmark
+just packages the same defaults so callers don't have to spell them out every
+time.
+
+### Metric
+
+Accuracy (`acc`) — the model's first-letter answer is compared against
+`answer`. The default prompt template asks the model to emit
+`ANSWER: <LETTER>` on the last line; the multi-choice parser tolerates the
+common variants (`Answer: B`, `**B**`, etc.).
+
+See [`evalscope/benchmarks/travel_qa/README.md`](evalscope/benchmarks/travel_qa/README.md)
+for the adapter-level reference.
 
 ## 🚀 Quick Start
 
@@ -173,6 +273,7 @@ Specify benchmarks in the command line:
 ## 📝 Documentation
 
 - [Thai Benchmarks Guide](README_THAI_BENCHMARKS.md)
+- [Travel-QA Benchmark](evalscope/benchmarks/travel_qa/README.md)
 - [API Evaluation Guide](docs/api_evaluation.md)
 - [Custom Benchmark Creation](docs/custom_benchmarks.md)
 - [EvalScope Documentation](https://evalscope.readthedocs.io/)

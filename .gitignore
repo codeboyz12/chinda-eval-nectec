@@ -156,3 +156,11 @@ swift.test*
 /cache
 evalscope/backend/rag_eval/ragas/prompts/chinese
 logs
+
+# Private travel_qa test sets — owned externally, never commit.
+# The ``travel_qa_example_*`` subset is the only one that ships with the repo.
+custom_eval/text/mcq/travel_qa_dev.jsonl
+custom_eval/text/mcq/travel_qa_val.jsonl
+custom_eval/text/mcq/travel_qa_v*_dev.jsonl
+custom_eval/text/mcq/travel_qa_v*_val.jsonl
+travel_qa_ver*.xlsx

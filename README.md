@@ -327,7 +327,7 @@ outputs/{model_name}/{benchmark}/
 ├── output.log         # full evalscope stdout/stderr for this run
 ├── status.txt         # SUCCESS or FAILED (only when run via the parallel scripts)
 ├── duration.txt        # seconds taken (only when run via the parallel scripts)
-└── reports/{model_name}/{benchmark}.json   # the score report
+└── {run_timestamp}/reports/{model_name}/{benchmark}.json   # the score report
 ```
 
 A report JSON looks like:

@@ -1,17 +1,25 @@
 #!/bin/bash
 
-# Parallel Thai Benchmark Evaluation for ptm-* models served behind a single
-# remote OpenAI-compatible API endpoint (no local vLLM/docker server to manage).
+# Thai Benchmark Evaluation for ptm-* models served behind a single remote
+# OpenAI-compatible API endpoint (no local vLLM/docker server to manage).
 #
-# All 4 models run concurrently; each model runs its benchmarks with limited
-# parallelism to avoid overloading the shared endpoint.
+# By default all 4 models below run concurrently; pass --models to run just
+# one (or a few) instead — useful if the shared endpoint can't handle multiple
+# models' worth of concurrent requests. Each model's own benchmarks still run
+# with up to MAX_PARALLEL_PER_MODEL concurrency regardless of how many models
+# you select.
 #
 # Usage:
 #   ./run_ptm_benchmarks_parallel.sh [OPTIONS]
 #
 # Options:
+#   --models MODEL1 MODEL2...      Specify models to evaluate (default: all 4 below)
 #   --benchmarks BENCH1 BENCH2... Specify benchmarks to run (default: the 8 below)
 #   --limit N                      Override default sample limit (default: 1500)
+#
+# Examples:
+#   ./run_ptm_benchmarks_parallel.sh --models ptm-minimax-2.5          # one model only
+#   ./run_ptm_benchmarks_parallel.sh --models ptm-minimax-2.5 ptm-minimax-m3
 #
 # Requires a .env file (see .env.example) with PTM_API_URL and PTM_API_KEY set.
 
@@ -32,7 +40,7 @@ MAX_PARALLEL_PER_MODEL=1  # concurrent benchmarks per model (4 models => up to 4
 EVAL_BATCH_SIZE=1
 DEFAULT_MAX_SAMPLES=1500
 
-MODELS=(
+ALL_MODELS=(
     "ptm-minimax-2.5"
     "ptm-diffusiongemma-26B-A4B-it"
     "ptm-minimax-m3"
@@ -238,9 +246,17 @@ run_model_benchmarks() {
 }
 
 # Parse command line arguments
+MODELS_TO_RUN=()
 BENCHMARKS_TO_RUN=()
 while [[ $# -gt 0 ]]; do
     case $1 in
+        --models)
+            shift
+            while [[ $# -gt 0 && ! "$1" =~ ^-- ]]; do
+                MODELS_TO_RUN+=("$1")
+                shift
+            done
+            ;;
         --benchmarks)
             shift
             while [[ $# -gt 0 && ! "$1" =~ ^-- ]]; do
@@ -257,6 +273,12 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+if [ ${#MODELS_TO_RUN[@]} -eq 0 ]; then
+    MODELS=("${ALL_MODELS[@]}")
+else
+    MODELS=("${MODELS_TO_RUN[@]}")
+fi
 
 THAI_BENCHMARKS=(
     "aime24-th"

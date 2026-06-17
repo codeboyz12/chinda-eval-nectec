@@ -273,10 +273,16 @@ Starts each model's vLLM Docker container, runs benchmarks for all 4 models conc
 ### Multiple remote/partner-API models in parallel
 
 ```bash
+# All models configured in the script (ALL_MODELS array)
 ./run_ptm_benchmarks_parallel.sh --benchmarks aime24-th hellaswag-th --limit 100
+
+# Just one model — useful if the shared endpoint can't take multiple models' worth of load at once
+./run_ptm_benchmarks_parallel.sh --models ptm-minimax-2.5 --limit 100
 ```
 
-Same idea, but for models that are already served behind one shared remote endpoint (no Docker/server lifecycle to manage). Edit the `MODELS` array at the top of the script to change which models run. Reads `.env` for the endpoint/key — see [Configuring Model Access](#-configuring-model-access).
+Same idea as the Docker version above, but for models that are already served behind one shared remote endpoint (no Docker/server lifecycle to manage). Edit `ALL_MODELS` at the top of the script to change the default roster, or override per-run with `--models`. Reads `.env` for the endpoint/key — see [Configuring Model Access](#-configuring-model-access).
+
+If the endpoint starts returning Cloudflare 524s under load (seen in practice with 4 models × `MAX_PARALLEL_PER_MODEL=3` = 12 concurrent requests), run models one at a time with `--models` instead of all at once, and/or lower `MAX_PARALLEL_PER_MODEL` in the script.
 
 ### One Docker model, all benchmarks, sequentially or in parallel
 
@@ -350,7 +356,7 @@ cat outputs/{model_name}/score_summary.csv | column -t -s ','
 | `scripts/setup_human_eval.sh` | One-time install of the `human_eval` package needed by `humaneval-th` |
 | `run_thai_benchmarks.sh` | Run one or more **local Docker** models against one or more benchmarks, sequentially per model |
 | `run_thai_benchmarks_parallel_4models.sh` | Run `chinda-qwen3-4b/8b/14b/32b` concurrently (dedicated ports), each running several benchmarks concurrently |
-| `run_ptm_benchmarks_parallel.sh` | Run multiple **remote/partner-API** models concurrently against the benchmark suite |
+| `run_ptm_benchmarks_parallel.sh` | Run one, several, or all (`--models`) **remote/partner-API** models against the benchmark suite |
 | `tests/test_thai_benchmarks_parallel.sh [model] [limit]` | Single local model, benchmarks run in parallel |
 | `tests/test_thai_benchmarks_sequence.sh` | Single local model, benchmarks run sequentially |
 | `tests/test_thai_single_benchmark.sh <name>` | Quick 10-sample test of one benchmark |

@@ -141,6 +141,9 @@ outputs/
 evalscope/outputs/
 evalscope/*_temp.py
 evalscope/data/
+
+# third-party source cloned by scripts/setup_human_eval.sh, not part of this repo
+/human-eval/
 */output_res/*
 
 

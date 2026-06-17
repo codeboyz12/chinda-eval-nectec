@@ -7,6 +7,7 @@ langdetect
 latex2sympy2_extended
 matplotlib
 modelscope[framework]>=1.27
+oss2  # modelscope.MsDataset is imported unconditionally by the dataset loader, even with --dataset-hub huggingface
 nltk>=3.9
 openai
 overrides

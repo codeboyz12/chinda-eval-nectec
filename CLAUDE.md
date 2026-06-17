@@ -17,12 +17,19 @@ pip install -e .
 
 # Development install with extras
 pip install -e '.[dev,perf,docs]'
+
+# humaneval-th / live_code_bench-th need this separately (not pip-installable, see script for why)
+./scripts/setup_human_eval.sh
 ```
 
 ### Running Evaluations
 
 ```bash
-# CLI evaluation (primary method)
+# Easiest: wrapper that fills in --eval-type/--dataset-hub/generation-config for you
+./scripts/eval.sh --model MODEL_NAME --api-url http://localhost:8801/v1/chat/completions --api-key EMPTY \
+    --datasets aime24-th hellaswag-th math_500-th --limit 100
+
+# Raw CLI (primary method under the hood — use when you need flags scripts/eval.sh doesn't expose)
 evalscope eval \
     --model MODEL_NAME \
     --api-url http://localhost:8801/v1/chat/completions \
@@ -35,8 +42,11 @@ evalscope eval \
 # Parallel benchmark execution for single model
 ./tests/test_thai_benchmarks_parallel.sh MODEL_NAME MAX_SAMPLES
 
-# Parallel 4-model evaluation (runs 4 models simultaneously)
+# Parallel 4-model evaluation (local Docker models, runs 4 simultaneously)
 ./run_thai_benchmarks_parallel_4models.sh --benchmarks aime24-th math_500-th --limit 100
+
+# Parallel evaluation for remote/partner-hosted API models (reads .env, see .env.example)
+./run_ptm_benchmarks_parallel.sh --benchmarks aime24-th math_500-th --limit 100
 ```
 
 ### vLLM Server Management
@@ -81,16 +91,18 @@ evalscope CLI (evalscope/cli/start_eval.py)
 
 Located in `evalscope/benchmarks/` with `-th` suffix:
 
+Dataset IDs below are read directly from each adapter — treat the adapter file as the source of truth if these ever drift.
+
 | Benchmark | Dataset ID | Domain |
 |-----------|------------|--------|
 | `aime24-th` | iapp/aime_2024-th | Math |
-| `hellaswag-th` | Patt/HellaSwag-th | Reasoning |
-| `humaneval-th` | iapp/humaneval-th | Code |
-| `ifeval-th` | iapp/ifeval-th | Instruction Following |
-| `math_500-th` | iapp/math_500-th | Math |
-| `live_code_bench-th` | iapp/live_code_bench-th | Code |
-| `openthaieval` | scb10x/openthaieval | Thai National Exams |
-| `code_switching` | iapp/thai_english_code_switching | Language Mixing |
+| `hellaswag-th` | Patt/HellaSwag_TH_cleanned | Reasoning |
+| `humaneval-th` | iapp/openai_humaneval-th | Code |
+| `ifeval-th` | scb10x/ifeval-th | Instruction Following |
+| `math_500-th` | iapp/math-500-th | Math |
+| `live_code_bench-th` | iapp/code_generation_lite-th | Code |
+| `openthaieval` | iapp/openthaieval (subset `all`) | Thai National Exams |
+| `code_switching` | airesearch/WangchanThaiInstruct | Language Mixing |
 
 ### Benchmark Adapter Pattern
 

@@ -26,7 +26,9 @@ fi
 API_URL="${PTM_API_URL:?Set PTM_API_URL in .env (see .env.example)}"
 API_KEY="${PTM_API_KEY:?Set PTM_API_KEY in .env (see .env.example)}"
 BASE_OUTPUT_DIR="outputs"
-MAX_PARALLEL_PER_MODEL=3  # concurrent benchmarks per model (4 models => up to 12 requests at once)
+MAX_PARALLEL_PER_MODEL=1  # concurrent benchmarks per model (4 models => up to 4 requests at once).
+                          # Was 3 (=> 12 at once); the shared origin (tokenmind.9meo.uk) returned
+                          # repeated Cloudflare 524s under that load and no model finished.
 EVAL_BATCH_SIZE=1
 DEFAULT_MAX_SAMPLES=1500
 

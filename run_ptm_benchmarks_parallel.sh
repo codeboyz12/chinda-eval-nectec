@@ -37,12 +37,17 @@ MODELS=(
     "ptm-qwen3.5-122b"
 )
 
-# Per-benchmark sample limits (override DEFAULT_MAX_SAMPLES for slow benchmarks)
-declare -A BENCHMARK_LIMITS
-BENCHMARK_LIMITS["code_switching"]=500
-BENCHMARK_LIMITS["live_code_bench-th"]=200
-BENCHMARK_LIMITS["math_500-th"]=500
-BENCHMARK_LIMITS["ifeval-th"]=500
+# Per-benchmark sample limits (override DEFAULT_MAX_SAMPLES for slow benchmarks).
+# Plain `case`, not `declare -A`: macOS ships bash 3.2, which has no associative arrays.
+benchmark_limit() {
+    case "$1" in
+        code_switching) echo 500 ;;
+        live_code_bench-th) echo 200 ;;
+        math_500-th) echo 500 ;;
+        ifeval-th) echo 500 ;;
+        *) echo "$DEFAULT_MAX_SAMPLES" ;;
+    esac
+}
 
 # Colors for output
 RED='\033[0;31m'
@@ -67,7 +72,7 @@ run_benchmark() {
     mkdir -p "$bench_output_dir"
 
     local start_time=$(date +%s)
-    local sample_limit="${BENCHMARK_LIMITS[$benchmark]:-$DEFAULT_MAX_SAMPLES}"
+    local sample_limit=$(benchmark_limit "$benchmark")
 
     print_model_message "$model_name" "Starting benchmark: $benchmark (limit: $sample_limit samples)" "$BLUE"
 
@@ -278,12 +283,10 @@ echo -e "${CYAN}Benchmarks:${NC} ${BENCHMARKS[@]}"
 echo -e "${CYAN}Max parallel benchmarks per model:${NC} $MAX_PARALLEL_PER_MODEL"
 echo -e "${CYAN}Default max samples:${NC} $DEFAULT_MAX_SAMPLES"
 
-if [ ${#BENCHMARK_LIMITS[@]} -gt 0 ]; then
-    echo -e "${CYAN}Benchmark-specific limits:${NC}"
-    for bench in "${!BENCHMARK_LIMITS[@]}"; do
-        echo "  - $bench: ${BENCHMARK_LIMITS[$bench]} samples"
-    done
-fi
+echo -e "${CYAN}Benchmark-specific limits:${NC}"
+for bench in code_switching live_code_bench-th math_500-th ifeval-th; do
+    echo "  - $bench: $(benchmark_limit "$bench") samples"
+done
 echo -e "${GREEN}=========================================${NC}"
 
 mkdir -p "$BASE_OUTPUT_DIR"
@@ -295,7 +298,7 @@ for model_name in "${MODELS[@]}"; do
         run_model_benchmarks "$model_name"
     } &
     MODEL_PIDS+=($!)
-    echo -e "${CYAN}[$(date '+%Y-%m-%d %H:%M:%S')] Launched $model_name (PID: ${MODEL_PIDS[-1]})${NC}"
+    echo -e "${CYAN}[$(date '+%Y-%m-%d %H:%M:%S')] Launched $model_name (PID: $!)${NC}"
 done
 
 echo -e "${BLUE}[$(date '+%Y-%m-%d %H:%M:%S')] Waiting for all models to complete...${NC}"

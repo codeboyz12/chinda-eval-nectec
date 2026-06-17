@@ -7,7 +7,7 @@
 <p align="center">
 <img src="https://img.shields.io/badge/python-%E2%89%A53.9-5be.svg">
 <img src="https://img.shields.io/badge/evalscope-v2.0-blue.svg">
-<a href="https://github.com/iapp-technology/chinda-eval"><img src="https://img.shields.io/badge/github-chinda--eval-green.svg"></a>
+<a href="https://github.com/codeboyz12/chinda-eval-nectec"><img src="https://img.shields.io/badge/github-chinda--eval--nectec-green.svg"></a>
 </p>
 
 > ⭐ **Chinda-Eval** is a specialized evaluation framework designed to assess Thai Language Models (LLMs) with comprehensive benchmarks and metrics. Built on top of EvalScope v2.0, it provides a robust infrastructure for evaluating Thai language understanding, generation, and reasoning capabilities.
@@ -172,8 +172,8 @@ for the adapter-level reference.
 ### Install from source
 
 ```bash
-git clone https://github.com/iapp-technology/chinda-eval.git
-cd chinda-eval
+git clone https://github.com/codeboyz12/chinda-eval-nectec.git
+cd chinda-eval-nectec
 
 conda create -n chinda-eval python=3.10
 conda activate chinda-eval
@@ -389,8 +389,8 @@ cat outputs/{model_name}/score_summary.csv | column -t -s ','
 
 ### Reporting issues
 
-- Upstream framework issues: [iapp-technology/chinda-eval/issues](https://github.com/iapp-technology/chinda-eval/issues)
-- NECTEC-fork-specific issues: open them wherever this fork is hosted (see badge/remote at the top of this file once pushed).
+- NECTEC-fork-specific issues (this repo's scripts, docs, tooling): [codeboyz12/chinda-eval-nectec/issues](https://github.com/codeboyz12/chinda-eval-nectec/issues)
+- Upstream framework issues (EvalScope/benchmark adapters themselves): [iapp-technology/chinda-eval/issues](https://github.com/iapp-technology/chinda-eval/issues)
 
 ## 📚 Citation
 
